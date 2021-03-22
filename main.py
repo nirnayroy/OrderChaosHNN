@@ -52,7 +52,7 @@ if __name__ == "__main__":
     args = get_args()
 
     args.save_dir = THIS_DIR + '/' + 'TrainedNetworks'
-    args.name = args.name + '_DSR_' + args.dsr
+    args.name = args.name + '_DSR_' + str(args.dsr)
 
     state_symbols = ['q1', 'q2', 'p1', 'p2']
     tspan = [0, 1000]

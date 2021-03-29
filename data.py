@@ -46,6 +46,7 @@ class DynamicalSystem():
         self.sys_fn = sympify(sys_hamiltonian, evaluate=False)
         self.state_symbols = state_symbols
         self.energyPoints = 50
+
         self.sys_dim = len(state_symbols)
         self.sys_eqns = []
         sympy_symbols = sp.symbols([tuple(state_symbols)])
@@ -58,14 +59,16 @@ class DynamicalSystem():
         # ----------- Getting symbolic expression of p2 = f(H,q1,q2,p1) and then lambdifying it --------------
         self.sym_energy = sp.Symbol('energy')
         # get the expression of p2 as f(H,q1,q2,p1)
+        """        
+        print(self.sym_energy, self.sys_fn , sympy_symbols[0][-1])
         self.expr_p2 = sp.solve(
-            self.sys_fn - self.sym_energy, sympy_symbols[0][-1])[1]
+        self.sys_fn - self.sym_energy, sympy_symbols[0][-1])[1]
         # lambdify p2 for fast numpy evaluations
-
+        
         self.expr_2_lam = sp.lambdify(
             (self.sym_energy,) + sympy_symbols[0][:-1], self.expr_p2, 'numpy')
         # ---------------------------------------------------------------------------------------------------
-
+        """
     def get_energy(self, state):
         x = self.sys_hamiltonian(state)
         return np.array(x, dtype=np.float)
@@ -146,7 +149,8 @@ class DynamicalSystem():
             dudv = self.update_fn(t, state=np.concatenate((u, v), axis=None))
 
         else:
-            dudv = self.external_update_fn(t, y0=np.concatenate((u, v), axis=None))
+            dudv = self.external_update_fn(
+                t, y0=np.concatenate((u, v), axis=None))
 
         dv = dudv[int(self.sys_dim / 2):self.sys_dim]  # [-dH/dq1, -dH/dq2]
         du = dudv[0:int(self.sys_dim / 2)]  # [dH/dp1, dH/dp2]
@@ -244,19 +248,25 @@ class DynamicalSystem():
         while not result:
             with np.errstate(invalid='raise'):
                 try:
-                    q1, q2 = 0.3 * (1 - 2 * np.random.random(2))
-                    p1 = 0.2 * (1 - 2 * np.random.random())
-                    p2 = self.expr_2_lam(energy, q1, q2, p1)
-                    result = True
+                    r1, r2 = 4*np.random.random(2)-2
+                    angle = 2*np.pi*np.random.random()-np.pi
+                    if -1<r1<1 and -1<r2<1:
+                        continue
+                    else:
+                        q1, q2 = r1, r2
+                        p1 = 0.5*np.sin(angle)
+
+                        p2 = 0.5*np.cos(angle)
+
+                        result = True
                 except FloatingPointError:
                     continue
 
         state = np.array([q1, q2, p1, p2])
-        print(state)
 
         #cal_energy = self.get_energy(state)
-        #print("sampled energy = {:.4e}, calculated energy = {:.4e}".format(
-        #       energy, cal_energy))
+        # print("sampled energy = {:.4e}, calculated energy = {:.4e}".format(
+        #    energy, cal_energy))
 
         return state
 
@@ -266,7 +276,7 @@ class DynamicalSystem():
             print("Making a data-set for Henon-Heiles system ...")
 
         # Energy range for training [0.02, 0.15]
-        energies = 0.15
+        energies = [0.5]
 
         orbit_settings['energy_range'] = energies
         orbit_settings['ensembles'] = self.ensembles

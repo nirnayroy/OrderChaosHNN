@@ -13,7 +13,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 def get_args():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--hamiltonian',
-                        default="(q1**2+q2**2+p1**2+p2**2)/(2)+ (q1**2*q2 - (q2**3)/(3))",
+                        default="(q1**2+q2**2+p1**2+p2**2)/(2)-(((1/(1+(exp(-(q1+2)/0.01))))-(1/(1+(exp(-(q1-2)/0.01)))))*((1/(1+(exp(-(q2+2)/0.01))))-(1/(1+(exp(-(q2-2)/0.01))))))",
                         type=str, help='Hamiltonian of the system')
 
     parser.add_argument('--input_dim', default=4,
@@ -32,7 +32,7 @@ def get_args():
                         type=str, help='name of the integration scheme [RK4, RK45, Symplectic]')
     parser.add_argument('--activation_fn', default='Tanh', type=str,
                         help='which activation function to use [Tanh, ReLU]')
-    parser.add_argument('--name', default='Henon_Heiles',
+    parser.add_argument('--name', default='Square',
                         type=str, help='Name of the system')
     parser.add_argument('--model', default='baseline',
                         type=str, help='baseline or hamiltonian')

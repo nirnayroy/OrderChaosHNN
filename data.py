@@ -61,8 +61,7 @@ class DynamicalSystem():
         # get the expression of p2 as f(H,q1,q2,p1)
         """        
         print(self.sym_energy, self.sys_fn , sympy_symbols[0][-1])
-        self.expr_p2 = sp.solve(
-        self.sys_fn - self.sym_energy, sympy_symbols[0][-1])[1]
+        
         # lambdify p2 for fast numpy evaluations
         
         self.expr_2_lam = sp.lambdify(
@@ -250,15 +249,10 @@ class DynamicalSystem():
                 try:
                     r1, r2 = 4*np.random.random(2)-2
                     angle = 2*np.pi*np.random.random()-np.pi
-                    if -1<r1<1 and -1<r2<1:
-                        continue
-                    else:
-                        q1, q2 = r1, r2
-                        p1 = 0.5*np.sin(angle)
-
-                        p2 = 0.5*np.cos(angle)
-
-                        result = True
+                    q1, q2 = r1, r2
+                    p1 = 0.5*np.sin(angle)
+                    p2 = 0.5*np.cos(angle)
+                    result = True
                 except FloatingPointError:
                     continue
 

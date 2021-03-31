@@ -34,7 +34,7 @@ def get_args():
                         type=str, help='name of the integration scheme [RK4, RK45, Symplectic]')
     parser.add_argument('--activation_fn', default='Tanh', type=str,
                         help='which activation function to use [Tanh, ReLU]')
-    parser.add_argument('--name', default='SquareTorus',
+    parser.add_argument('--name', default='Square',
                         type=str, help='Name of the system')
     parser.add_argument('--model', default='baseline',
                         type=str, help='baseline or hamiltonian')

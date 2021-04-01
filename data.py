@@ -251,7 +251,9 @@ class DynamicalSystem():
                     angle = 2*np.pi*np.random.random()-np.pi
                     q1, q2 = r1, r2
                     p1 = 0.5*np.sin(angle)
-                    p2 = 0.5*np.cos(angle)
+                    p2 = np.sqrt(2*energy-((p1**2)-((
+                                    (1/(1+(exp(-(q1+2)/0.1))))-(1/(1+(exp(-(q1-2)/0.1)))))*(
+                                    (1/(1+(exp(-(q2+2)/0.1))))-(1/(1+(exp(-(q2-2)/0.1))))))+1))
                     result = True
                 except FloatingPointError:
                     continue
@@ -270,7 +272,7 @@ class DynamicalSystem():
             print("Making a data-set for Henon-Heiles system ...")
 
         # Energy range for training [0.02, 0.15]
-        energies = [0.5]
+        energies = np.linspace(0.02, 0.15, self.energyPoints)
 
         orbit_settings['energy_range'] = energies
         orbit_settings['ensembles'] = self.ensembles
@@ -278,7 +280,7 @@ class DynamicalSystem():
 
         N = self.time_points * self.ensembles
         from tqdm import tqdm
-        for energy in tqdm(energies):
+        for energy in tqdm(range(energies)):
             count = 0
             while count < N:
                 state = self.random_config(energy)
@@ -328,14 +330,11 @@ class DynamicalSystem():
             save_dir, experiment_name, self.integrator, self.ensembles, self.tspan[1], self.time_points, self.energyPoints)
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_5000_Resolution_50000_energyPoints20.pkl"
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_1000_Resolution_10000_energyPoints20.pkl"
-        try:
-            data = from_pickle(path)
-            print("Successfully loaded data from {}".format(path))
-        except:
-            print(
-                "Had a problem loading data from {}. Rebuilding dataset...".format(
-                    path))
-            data = self.make_orbits_dataset()
-            to_pickle(data, path)
+
+        print(
+            "Had a problem loading data from {}. Rebuilding dataset...".format(
+                path))
+        data = self.make_orbits_dataset()
+        to_pickle(data, path)
 
         return data

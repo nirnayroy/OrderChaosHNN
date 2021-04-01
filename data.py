@@ -280,7 +280,7 @@ class DynamicalSystem():
 
         N = self.time_points * self.ensembles
         from tqdm import tqdm
-        for energy in tqdm(range(energies)):
+        for energy in tqdm(energies):
             count = 0
             while count < N:
                 state = self.random_config(energy)

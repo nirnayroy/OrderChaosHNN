@@ -27,7 +27,7 @@ class BLNNAE(torch.nn.Module):
             self.enc_layers.append(torch.nn.Linear(d_hidden[i], d_hidden[i + 1]))
             self.enc_nonlinearity.append(nonlinear_fn)
 
-        self.enc_last_layer = torch.nn.Linear(d_hidden[-1], bottleneck, bias=None)
+        self.enc_last_layer = torch.nn.Linear(d_hidden[-1], bottleneck)
 
         self.dec_layers.append(torch.nn.Linear(bottleneck, d_hidden[0]))
         self.dec_nonlinearity.append(nonlinear_fn)
@@ -51,7 +51,7 @@ class BLNNAE(torch.nn.Module):
             torch.nn.init.orthogonal_(self.dec_layers[i].weight)
 
         torch.nn.init.orthogonal_(self.dec_last_layer.weight)
-        
+
     def encoder(self, x):
         dict_layers = dict(zip(self.enc_layers, self.enc_nonlinearity))
         for layer, nonlinear_transform in dict_layers.items():

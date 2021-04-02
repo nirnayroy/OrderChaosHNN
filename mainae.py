@@ -22,6 +22,8 @@ def get_args():
                         type=int, help='Input dimension')
     parser.add_argument('--hidden_dim', nargs="*", default=[200, 200],
                         type=int, help='hidden layers dimension')
+    parser.add_argument('--bottleneck',  default=4,
+                        type=int, help='hidden layers dimension')
     parser.add_argument('--learn_rate', default=1e-03,
                         type=float, help='learning rate')
     parser.add_argument('--batch_size', default=512,
@@ -74,8 +76,8 @@ if __name__ == "__main__":
     if args.model == 'baseline':
         print('Training baseline model ...')
         out_dim = args.input_dim
-        model = BLNN(args.input_dim, args.hidden_dim,
-                     out_dim, args.activation_fn)
+        model = BLNNAE(args.input_dim, args.hidden_dim,
+                     out_dim, args.bottleneck, args.activation_fn)
         optim = torch.optim.Adam(
             model.parameters(), args.learn_rate, weight_decay=1e-4)
         stats = model.train(args, data, optim)
@@ -83,9 +85,9 @@ if __name__ == "__main__":
     else:
         print('Training hamiltonian neural network ...')
         out_dim = 1
-        nn_model = BLNN(args.input_dim, args.hidden_dim,
-                        out_dim, args.activation_fn)
-        model = HNN(args.input_dim, baseline_model=nn_model)
+        nn_model = BLNNAE(args.input_dim, args.hidden_dim,
+                        out_dim, args.bottleneck, args.activation_fn)
+        model = HNNAE(args.input_dim, baseline_model=nn_model)
         optim = torch.optim.Adam(
             model.parameters(), args.learn_rate, weight_decay=1e-4)
         stats = model.train(args, data, optim)

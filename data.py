@@ -45,7 +45,7 @@ class DynamicalSystem():
         self.order = symplectic_order
         self.sys_fn = sympify(sys_hamiltonian, evaluate=False)
         self.state_symbols = state_symbols
-        self.energyPoints = 50
+        self.energyPoints = 10
 
         self.sys_dim = len(state_symbols)
         self.sys_eqns = []
@@ -205,7 +205,6 @@ class DynamicalSystem():
                                    t_span=self.tspan,
                                    y0=state.flatten(),
                                    t_eval=t_eval, rtol=1e-12)
-
         orbit = path['y'].reshape(self.sys_dim, self.time_points)
         orbit_settings['t_eval'] = t_eval
 
@@ -272,7 +271,7 @@ class DynamicalSystem():
             print("Making a data-set for Henon-Heiles system ...")
 
         # Energy range for training [0.02, 0.15]
-        energies = np.linspace(0.02, 0.15, self.energyPoints)
+        energies = np.linspace(0.35, 0.85, self.energyPoints)
 
         orbit_settings['energy_range'] = energies
         orbit_settings['ensembles'] = self.ensembles
@@ -331,10 +330,15 @@ class DynamicalSystem():
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_5000_Resolution_50000_energyPoints20.pkl"
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_1000_Resolution_10000_energyPoints20.pkl"
 
-        print(
-            "Had a problem loading data from {}. Rebuilding dataset...".format(
-                path))
-        data = self.make_orbits_dataset()
-        to_pickle(data, path)
+        try:
+            data = from_pickle(path)
+            print("Successfully loaded data from {}".format(path))
+        except:
+            print(
+                "Had a problem loading data from {}. Rebuilding dataset...".format(
+                    path))
+            data = self.make_orbits_dataset()
+            to_pickle(data, path)
+
 
         return data

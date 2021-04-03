@@ -4,10 +4,13 @@ import numpy as np
 from hnn import HNN
 from  baseline_nn import BLNN
 import argparse
+import matplotlib
+import matplotlib.pyplot as plt
 from data import DynamicalSystem
 from tqdm import tqdm
 import os
 import sys
+from mpl_toolkits import mplot3d
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,7 +34,7 @@ def get_args():
                         type=int, help='batch size'),
     parser.add_argument('--input_noise', default=0.0,
                         type=float, help='noise strength added to the inputs')
-    parser.add_argument('--epochs', default=2,
+    parser.add_argument('--epochs', default=3,
                         type=int, help='No. of training epochs')
     parser.add_argument('--integrator_scheme', default='RK45',
                         type=str, help='name of the integration scheme [RK4, RK45, Symplectic]')
@@ -75,7 +78,6 @@ class Autoencoder(nn.Module):
                       nn.ReLU(True),
                       nn.Linear(200,4),
                       nn.ReLU(True)
-            
                       )
         
         self.decoder=nn.Sequential(
@@ -156,6 +158,43 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
 
-    ixs = torch.randperm(test_x.shape[0])[:args.batch_size]
-    encoding = ae.encoder(test_x[ixs])
-    print(encoding.shape)
+    result = False
+    while not result:
+        with np.errstate(invalid='raise'):
+            try:
+                r1, r2 = 4*np.random.random(2)-2
+                angle = 2*np.pi*np.random.random()-np.pi
+                q1, q2 = r1, r2
+                p1 = 0.5*np.sin(angle)
+                p2 = 0.5*np.cos(angle)
+                result = True 
+            except FloatingPointError:
+                continue
+
+    state = np.array([q1, q2, p1, p2])
+    orbit, settings = sys.get_orbit(state)
+    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
+    z = encoding[:,2]
+    # convert to 2d matrices
+    Z = np.outer(z.T, z)        # 50x50
+    X, Y = np.meshgrid(encoding[:,0], encoding[:,1])    # 50x50
+
+    # fourth dimention - colormap
+    # create colormap according to x-value (can use any 50x50 array)
+    w = encoding[:,3]
+    color_dimension = w # change to desired fourth dimension
+    minn, maxx = color_dimension.min(), color_dimension.max()
+    norm = matplotlib.colors.Normalize(minn, maxx)
+    m = plt.cm.ScalarMappable(norm=norm, cmap='jet')
+    m.set_array([])
+    fcolors = m.to_rgba(color_dimension)
+
+    # plot
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.scatter3D(encoding[:,0],encoding[:,1], encoding[:,2], facecolors=fcolors, vmin=minn, vmax=maxx)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    plt.savefig('introspection.png')
+

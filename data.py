@@ -247,17 +247,17 @@ class DynamicalSystem():
             with np.errstate(invalid='raise'):
                 try:
                     r1, r2 = 4*np.random.random(2)-2
-                    if -0.5<r1<0.5 and -0.5<r2<0.5:
+                    if -1<r1<1 and -1<r2<1:
                         continue
                     else:
                         angle = 2*np.pi*np.random.random()-np.pi
                         q1, q2 = r1, r2
                         p1 = 0.5*np.sin(angle)
                         p2 = np.sqrt(2*energy-((p1**2)-((
-                                        (1/(1+(np.exp(-(q1+2)/0.05))))-(1/(1+(np.exp(-(q1-2)/0.05)))))*(
-                                        (1/(1+(np.exp(-(q2+2)/0.05))))-(1/(1+(np.exp(-(q2-2)/0.05))))))
-                                        +(((1/(1+(np.exp(-(q1+0.5)/0.05))))-(1/(1+(np.exp(-(q1-0.5)/0.05)))))*(
-                                        (1/(1+(np.exp(-(q2+0.5)/0.05))))-(1/(1+(np.exp(-(q2-0.5)/0.05))))))+1))
+                                        (1/(1+(np.exp(-(q1+2)/0.1))))-(1/(1+(np.exp(-(q1-2)/0.1)))))*(
+                                        (1/(1+(np.exp(-(q2+2)/0.1))))-(1/(1+(np.exp(-(q2-2)/0.1))))))
+                                        +(((1/(1+(np.exp(-(q1+0.5)/0.1))))-(1/(1+(np.exp(-(q1-0.5)/0.1)))))*(
+                                        (1/(1+(np.exp(-(q2+0.5)/0.1))))-(1/(1+(np.exp(-(q2-0.5)/0.1))))))+1))
                         result = True
                 except FloatingPointError:
                     continue

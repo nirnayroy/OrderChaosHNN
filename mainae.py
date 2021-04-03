@@ -1,14 +1,15 @@
 import torch
+from torch import nn, optim
 import numpy as np
-from hnnae import HNNAE
-from ae import BLNNAE
+from hnn import HNN
+from  baseline_nn import BLNN
 import argparse
 from data import DynamicalSystem
-
+from tqdm import tqdm
 import os
 import sys
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_args():
     parser = argparse.ArgumentParser(description=None)
@@ -50,13 +51,60 @@ def get_args():
 
     return parser.parse_args()
 
+def load_model(args, baseline=False):
+    if baseline:
+        output_dim = args.input_dim
+        model = BLNN(args.input_dim, args.hidden_dim,output_dim,'ReLU')
+        path = "/content/OrderChaosHNN/TrainedNetworks/Square_DSR_0.1_nlayers_2-orbits-baseline_integrator_RK45_epochs_2_BatchSize_512.tar"
+    else:
+        output_dim = 1
+        nn_model = BLNN(args.input_dim, args.hidden_dim,output_dim,'ReLU')
+        model = HNN(args.input_dim,baseline_model=nn_model)
+        path = "/content/OrderChaosHNN/TrainedNetworks/Square_DSR_0.1_nlayers_2-orbits-hnn_integrator_RK45_epochs_2_BatchSize_512.tar"
+    
+    model.load_state_dict(torch.load(path),strict=False)
+    return model
+
+class Autoencoder(nn.Module):
+    def __init__(self):
+        super(Autoencoder,self).__init__()
+        self.encoder=nn.Sequential(
+                      nn.Linear(4,200),
+                      nn.ReLU(True),
+                      nn.Linear(200,200),
+                      nn.ReLU(True),
+                      nn.Linear(200,4),
+                      nn.ReLU(True)
+            
+                      )
+        
+        self.decoder=nn.Sequential(
+                      nn.Linear(4,200),
+                      nn.ReLU(True),
+                      nn.Linear(200,200),
+                      nn.ReLU(True),
+                      nn.Linear(200, 4),
+                      nn.Sigmoid(),
+                      )
+        
+ 
+    def forward(self,x):
+        x=self.encoder(x)
+        x=self.decoder(x)
+        return x
+  
+
 
 if __name__ == "__main__":
 
     args = get_args()
-
+    
     args.save_dir = THIS_DIR + '/' + 'TrainedNetworks'
     args.name = args.name + '_DSR_' + str(args.dsr)
+    base_model = load_model(args, baseline=True)
+    hnn_model = load_model(args, baseline=False)
+
+    print('model loaded!')
 
     state_symbols = ['q1', 'q2', 'p1', 'p2']
     tspan = [0, 1000]
@@ -66,39 +114,48 @@ if __name__ == "__main__":
                           timesteps=tpoints, integrator=args.integrator_scheme, state_symbols=state_symbols, symplectic_order=4)
 
     data = sys.get_dataset(args.name, THIS_DIR)
-
+    print('data loaded!')
     print('Hidden dimensions (excluding first and last layer) : {}'.format(
         args.hidden_dim))
 
     print('Training data size : {}'.format(data['coords'].shape))
     print('Testing data size : {}'.format(data['test_coords'].shape))
 
-    if args.model == 'baseline':
-        print('Training baseline model ...')
-        out_dim = args.input_dim
-        model = BLNNAE(args.input_dim, args.hidden_dim,
-                     out_dim, args.bottleneck, args.activation_fn)
-        optim = torch.optim.Adam(
-            model.parameters(), args.learn_rate, weight_decay=1e-4)
-        stats = model.train(args, data, optim)
+    x = torch.tensor(
+        data['coords'], requires_grad=True, dtype=torch.float32)
+    # ----Training labels-------
+    dxdt = torch.Tensor(data['dcoords'])
 
-    else:
-        print('Training hamiltonian neural network ...')
-        out_dim = 1
-        nn_model = BLNNAE(args.input_dim, args.hidden_dim,
-                        out_dim, args.bottleneck, args.activation_fn)
-        model = HNNAE(args.input_dim, baseline_model=nn_model)
-        optim = torch.optim.Adam(
-            model.parameters(), args.learn_rate, weight_decay=1e-4)
-        stats = model.train(args, data, optim)
+    # ----Testing inputs-------
+    test_x = torch.tensor(
+        data['test_coords'], requires_grad=True, dtype=torch.float32)
 
-    os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None
+    # ----Testing inputs-------
+    test_dxdt = torch.Tensor(data['test_dcoords'])
 
-    if args.model == 'baseline':
-        label = 'baseline'
-    else:
-        label = 'hnn'
+    # number of batches
+    no_batches = int(x.shape[0]/args.batch_size)
 
-    path = '{}/{}_nlayers_{}-orbits-{}_integrator_{}_epochs_{}_BatchSize_{}.tar'.format(
-        args.save_dir, args.name, len(args.hidden_dim), label, args.integrator_scheme, args.epochs, args.batch_size)
-    torch.save(model.state_dict(), path)
+      
+    ae=Autoencoder()
+    criterion=nn.MSELoss()
+    optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
+
+    for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
+        for batch in tqdm(range(no_batches), desc='Batches', leave=True):
+
+            optimizer.zero_grad()
+            ixs = torch.randperm(x.shape[0])[:args.batch_size]
+            dxdt_hat = hnn_model.time_derivative(x[ixs]).detach()
+
+            #-----------------Forward Pass----------------------
+            output=ae(x[ixs])
+            loss=criterion(output,dxdt[ixs])
+            #-----------------Backward Pass---------------------
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+    ixs = torch.randperm(test_x.shape[0])[:args.batch_size]
+    encoding = ae.encoder(test_x[ixs])
+    print(encoding.shape)

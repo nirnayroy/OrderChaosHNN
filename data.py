@@ -252,7 +252,9 @@ class DynamicalSystem():
                     p1 = 0.5*np.sin(angle)
                     p2 = np.sqrt(2*energy-((p1**2)-((
                                     (1/(1+(np.exp(-(q1+2)/0.1))))-(1/(1+(np.exp(-(q1-2)/0.1)))))*(
-                                    (1/(1+(np.exp(-(q2+2)/0.1))))-(1/(1+(np.exp(-(q2-2)/0.1))))))+1))
+                                    (1/(1+(np.exp(-(q2+2)/0.1))))-(1/(1+(np.exp(-(q2-2)/0.1))))))
+                                    +(((1/(1+(np.exp(-(q1+1)/0.1))))-(1/(1+(np.exp(-(q1-1)/0.1)))))*(
+                                    (1/(1+(np.exp(-(q2+1)/0.1))))-(1/(1+(np.exp(-(q2-1)/0.1))))))+1))
                     result = True
                 except FloatingPointError:
                     continue

@@ -234,17 +234,16 @@ class VAE(nn.Module):
                       nn.Tanh(),
                       nn.Linear(200, 4),
                       )
-    def reparametrize(mu, logvar):
+    def reparametrize(self, mu, logvar):
         std = logvar.div(2).exp()
         eps = Variable(std.data.new(std.size()).normal_())
         return mu + std*eps
-
 
     def forward(self, x):
         distributions = self.encoder(x)
         mu = distributions[:, :4]
         logvar = distributions[:, 4:]
-        z = reparametrize(mu, logvar)
+        z = self.reparametrize(mu, logvar)
         x_recon = self.decoder(z)
         return x_recon, mu, logvar
 

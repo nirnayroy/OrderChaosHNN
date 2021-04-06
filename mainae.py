@@ -246,7 +246,7 @@ class VAE(nn.Module):
     def forward(self, x):
         distributions = self.encoder(x)
         mu = distributions[:, :4]
-        logvar = distributions[:, 4:]
+        logvar = distributions[:, :4]
         print('mu:', mu, 'logvr:', logvar)
         z = self.reparametrize(mu, logvar)
         x_recon = self.decoder(z)

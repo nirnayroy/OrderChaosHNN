@@ -181,7 +181,7 @@ def train_CAE(x, dxdt, model):
     ae=Autoencoder()
     criterion=nn.MSELoss()
     optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
-    print(model.state_dict().keys())
+    print(ae.state_dict().keys())
     for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
         for batch in tqdm(range(no_batches), desc='Batches', leave=True):
 
@@ -192,7 +192,7 @@ def train_CAE(x, dxdt, model):
 
             #-----------------Forward Pass----------------------
             output=ae(inp)
-            loss=criterion(output,dxdt[ixs])+closs(model.state_dict().keys()[1], inp, output, ae.encoder(inp), 1e-4)
+            loss=criterion(output,dxdt[ixs])+closs(model.state_dict()['baseline_model.layers.1.weight'], inp, output, ae.encoder(inp), 1e-4)
             #-----------------Backward Pass---------------------
             optimizer.zero_grad()
             loss.backward()

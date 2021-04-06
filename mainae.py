@@ -217,7 +217,7 @@ def train_CAE(x, dxdt, model):
 
 class VAE(nn.Module):
     def __init__(self):
-        super(Autoencoder,self).__init__()
+        super(VAE,self).__init__()
         self.encoder=nn.Sequential(
                       nn.Linear(4,200),
                       nn.Tanh(),

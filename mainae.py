@@ -74,11 +74,11 @@ class Autoencoder(nn.Module):
         super(Autoencoder,self).__init__()
         self.encoder=nn.Sequential(
                       nn.Linear(4,200),
-                      nn.ReLU(True),
+                      nn.Tanj(True),
                       nn.Linear(200,200),
-                      nn.ReLU(True),
+                      nn.Tanh(True),
                       nn.Linear(200,4),
-                      nn.ReLU(True)
+                      nn.Tanh(True)
                       )
         
         self.decoder=nn.Sequential(
@@ -96,7 +96,7 @@ class Autoencoder(nn.Module):
         x=self.decoder(x)
         return x
 
-def train_AE(x, dxdt):
+def train_AE(x, dxdt, model):
     ae=Autoencoder()
     criterion=nn.MSELoss()
     optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
@@ -106,7 +106,7 @@ def train_AE(x, dxdt):
 
             optimizer.zero_grad()
             ixs = torch.randperm(x.shape[0])[:args.batch_size]
-            dxdt_hat = hnn_model.time_derivative(x[ixs]).detach()
+            dxdt_hat = model.time_derivative(x[ixs]).detach()
 
             #-----------------Forward Pass----------------------
             output=ae(x[ixs])
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     # number of batches
     no_batches = int(x.shape[0]/args.batch_size)
 
-    encoding = train_AE(x, dxdt)
+    encoding = train_AE(x, dxdt, hnn_model)
 
     z = encoding[:,2]
     # convert to 2d matrices

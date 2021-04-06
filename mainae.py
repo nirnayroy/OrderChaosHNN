@@ -240,14 +240,12 @@ class VAE(nn.Module):
         var = logvar.exp()
         std = var.sqrt()
         eps = Variable(torch.FloatTensor(std.size()).normal_())
-        print(eps.shape, std.shape, mu.shape)
         return eps.mul(std).add(mu)
 
     def forward(self, x):
         distributions = self.encoder(x)
         mu = distributions[:, :4]
         logvar = distributions[:, :4]
-        print('mu:', mu, 'logvr:', logvar)
         z = self.reparametrize(mu, logvar)
         x_recon = self.decoder(z)
         return x_recon, mu, logvar

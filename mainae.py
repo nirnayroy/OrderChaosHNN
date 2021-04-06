@@ -142,9 +142,11 @@ def train_DAE(x, dxdt, model):
             optimizer.zero_grad()
             ixs = torch.randperm(x.shape[0])[:args.batch_size]
             dxdt_hat = model.time_derivative(x[ixs]).detach()
+            inp = x[ixs]
+            noisy = torch.randn(inp.size()) * 0.2
 
             #-----------------Forward Pass----------------------
-            output=ae(x[ixs])
+            output=ae(noisy)
             loss=criterion(output,dxdt[ixs])
             #-----------------Backward Pass---------------------
             optimizer.zero_grad()
@@ -211,7 +213,7 @@ if __name__ == "__main__":
     # number of batches
     no_batches = int(x.shape[0]/args.batch_size)
 
-    encoding = train_AE(x, dxdt, hnn_model)
+    encoding = train_DAE(x, dxdt, hnn_model)
 
     z = encoding[:,2]
     # convert to 2d matrices

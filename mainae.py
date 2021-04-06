@@ -19,7 +19,8 @@ def get_args():
     parser.add_argument('--hamiltonian',
                         default='''(p1**2+p2**2)/(2)-((
         (1/(1+(exp(-(q1+2)/0.1))))-(1/(1+(exp(-(q1-2)/0.1)))))*(
-        (1/(1+(exp(-(q2+2)/0.1))))-(1/(1+(exp(-(q2-2)/0.1))))))+1''',
+        (1/(1+(exp(-(q2+2)/0.1))))-(1/(1+(exp(-(q2-2)/0.1))))))
+        +1''',
                         type=str, help='Hamiltonian of the system')
 
     parser.add_argument('--input_dim', default=4,
@@ -57,11 +58,11 @@ def get_args():
 def load_model(args, baseline=False):
     if baseline:
         output_dim = args.input_dim
-        model = BLNN(args.input_dim, args.hidden_dim,output_dim,'ReLU')
+        model = BLNN(args.input_dim, args.hidden_dim,output_dim, args.activation_fn)
         path = "/content/OrderChaosHNN/TrainedNetworks/Square_DSR_0.1_nlayers_2-orbits-baseline_integrator_RK45_epochs_2_BatchSize_512.tar"
     else:
         output_dim = 1
-        nn_model = BLNN(args.input_dim, args.hidden_dim,output_dim,'ReLU')
+        nn_model = BLNN(args.input_dim, args.hidden_dim,output_dim, args.activation_fn)
         model = HNN(args.input_dim,baseline_model=nn_model)
         path = "/content/OrderChaosHNN/TrainedNetworks/Square_DSR_0.1_nlayers_2-orbits-hnn_integrator_RK45_epochs_2_BatchSize_512.tar"
     
@@ -94,7 +95,45 @@ class Autoencoder(nn.Module):
         x=self.encoder(x)
         x=self.decoder(x)
         return x
-  
+
+def train_AE(x, dxdt):
+    ae=Autoencoder()
+    criterion=nn.MSELoss()
+    optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
+
+    for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
+        for batch in tqdm(range(no_batches), desc='Batches', leave=True):
+
+            optimizer.zero_grad()
+            ixs = torch.randperm(x.shape[0])[:args.batch_size]
+            dxdt_hat = hnn_model.time_derivative(x[ixs]).detach()
+
+            #-----------------Forward Pass----------------------
+            output=ae(x[ixs])
+            loss=criterion(output,dxdt[ixs])
+            #-----------------Backward Pass---------------------
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+    result = False
+    while not result:
+        with np.errstate(invalid='raise'):
+            try:
+                r1, r2 = 4*np.random.random(2)-2
+                angle = 2*np.pi*np.random.random()-np.pi
+                q1, q2 = r1, r2
+                p1 = 0.5*np.sin(angle)
+                p2 = 0.5*np.cos(angle)
+                result = True 
+            except FloatingPointError:
+                continue
+
+    state = np.array([q1, q2, p1, p2])
+    orbit, settings = sys.get_orbit(state)
+    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
+    return encoding
+
+
 
 
 if __name__ == "__main__":
@@ -138,42 +177,8 @@ if __name__ == "__main__":
     # number of batches
     no_batches = int(x.shape[0]/args.batch_size)
 
-      
-    ae=Autoencoder()
-    criterion=nn.MSELoss()
-    optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
+    encoding = train_AE(x, dxdt)
 
-    for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
-        for batch in tqdm(range(no_batches), desc='Batches', leave=True):
-
-            optimizer.zero_grad()
-            ixs = torch.randperm(x.shape[0])[:args.batch_size]
-            dxdt_hat = hnn_model.time_derivative(x[ixs]).detach()
-
-            #-----------------Forward Pass----------------------
-            output=ae(x[ixs])
-            loss=criterion(output,dxdt[ixs])
-            #-----------------Backward Pass---------------------
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-    result = False
-    while not result:
-        with np.errstate(invalid='raise'):
-            try:
-                r1, r2 = 4*np.random.random(2)-2
-                angle = 2*np.pi*np.random.random()-np.pi
-                q1, q2 = r1, r2
-                p1 = 0.5*np.sin(angle)
-                p2 = 0.5*np.cos(angle)
-                result = True 
-            except FloatingPointError:
-                continue
-
-    state = np.array([q1, q2, p1, p2])
-    orbit, settings = sys.get_orbit(state)
-    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
     z = encoding[:,2]
     # convert to 2d matrices
     Z = np.outer(z.T, z)        # 50x50
@@ -196,5 +201,4 @@ if __name__ == "__main__":
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    plt.savefig('introspection.png')
-
+    plt.savefig('squareintrospection.png')

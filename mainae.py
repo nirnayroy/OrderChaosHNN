@@ -78,7 +78,7 @@ class Autoencoder(nn.Module):
                       nn.Linear(200,200),
                       nn.Tanh(),
                       nn.Linear(200,4),
-                      nn.Sigmoid()
+                      nn.Tanh()
                       )
         
         self.decoder=nn.Sequential(
@@ -87,7 +87,6 @@ class Autoencoder(nn.Module):
                       nn.Linear(200,200),
                       nn.Tanh(),
                       nn.Linear(200, 4),
-                      nn.Sigmoid()
                       )
         
  
@@ -127,7 +126,42 @@ def train_AE(x, dxdt, model):
                 result = True 
             except FloatingPointError:
                 continue
+    state = np.array([q1, q2, p1, p2])
+    orbit, settings = sys.get_orbit(state)
+    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
+    return encoding
 
+def train_DAE(x, dxdt, model):
+    ae=Autoencoder()
+    criterion=nn.MSELoss()
+    optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
+
+    for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
+        for batch in tqdm(range(no_batches), desc='Batches', leave=True):
+
+            optimizer.zero_grad()
+            ixs = torch.randperm(x.shape[0])[:args.batch_size]
+            dxdt_hat = model.time_derivative(x[ixs]).detach()
+
+            #-----------------Forward Pass----------------------
+            output=ae(x[ixs])
+            loss=criterion(output,dxdt[ixs])
+            #-----------------Backward Pass---------------------
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+    result = False
+    while not result:
+        with np.errstate(invalid='raise'):
+            try:
+                r1, r2 = 4*np.random.random(2)-2
+                angle = 2*np.pi*np.random.random()-np.pi
+                q1, q2 = r1, r2
+                p1 = 0.5*np.sin(angle)
+                p2 = 0.5*np.cos(angle)
+                result = True 
+            except FloatingPointError:
+                continue
     state = np.array([q1, q2, p1, p2])
     orbit, settings = sys.get_orbit(state)
     encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()

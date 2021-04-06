@@ -260,10 +260,10 @@ def train_VAE(x, dxdt, model, beta = 4, beta1=0.9, beta2=0.999):
         assert batch_size != 0
 
         if distribution == 'bernoulli':
-            recon_loss = F.binary_cross_entropy_with_logits(x_recon, x, size_average=False).div(batch_size)
+            recon_loss = nn.binary_cross_entropy_with_logits(x_recon, x, size_average=False).div(batch_size)
         elif distribution == 'gaussian':
-            x_recon = F.sigmoid(x_recon)
-            recon_loss = F.mse_loss(x_recon, x, size_average=False).div(batch_size)
+            x_recon = nn.sigmoid(x_recon)
+            recon_loss = nn.mse_loss(x_recon, x, size_average=False).div(batch_size)
         else:
             recon_loss = None
         return recon_loss

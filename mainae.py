@@ -143,7 +143,7 @@ def train_DAE(x, dxdt, model):
             ixs = torch.randperm(x.shape[0])[:args.batch_size]
             dxdt_hat = model.time_derivative(x[ixs]).detach()
             inp = x[ixs]
-            noisy = torch.randn(inp.size()) * 0.2
+            noisy = torch.randn(inp.size()) * 0.1
 
             #-----------------Forward Pass----------------------
             output=ae(noisy)

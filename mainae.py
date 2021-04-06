@@ -291,7 +291,7 @@ def train_VAE(x, dxdt, model, beta = 4, beta1=0.9, beta2=0.999):
             dxdt_hat = model.time_derivative(x[ixs]).detach()
 
             #-----------------Forward Pass----------------------
-            output, mu, logvar=ae(x[ixs])
+            output, mu, logvar=vae(x[ixs])
             recon_loss = reconstruction_loss(x[ixs], output, 'gaussian')
             total_kld, dim_wise_kld, mean_kld = kl_divergence(mu, logvar)
 
@@ -315,7 +315,7 @@ def train_VAE(x, dxdt, model, beta = 4, beta1=0.9, beta2=0.999):
                 continue
     state = np.array([q1, q2, p1, p2])
     orbit, settings = sys.get_orbit(state)
-    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
+    encoding = vae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
     return encoding
 
 

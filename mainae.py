@@ -263,7 +263,7 @@ def train_VAE(x, dxdt, model, beta = 4, beta1=0.9, beta2=0.999):
             recon_loss = nn.binary_cross_entropy_with_logits(x_recon, x, size_average=False).div(batch_size)
         elif distribution == 'gaussian':
             x_recon = nn.Sigmoid()(x_recon)
-            recon_loss = nn.MSELoss()(x_recon, x, size_average=False).div(batch_size)
+            recon_loss = nn.MSELoss()(x_recon, x).div(batch_size)
         else:
             recon_loss = None
         return recon_loss

@@ -1,5 +1,6 @@
 import torch
 from torch import nn, optim
+from torch.autograd import Variable
 import numpy as np
 from hnn import HNN
 from  baseline_nn import BLNN

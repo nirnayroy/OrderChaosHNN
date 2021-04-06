@@ -169,7 +169,50 @@ def train_DAE(x, dxdt, model):
     encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
     return encoding
 
+def train_CAE(x, dxdt, model):
+    def closs(W, x, recons_x, h, lam):
+        dh = h * (1 - h) # Hadamard product produces size N_batch x N_hidden
+            # Sum through the input dimension to improve efficiency, as suggested in #1
+        w_sum = torch.sum(Variable(W)**2, dim=1)
+        # unsqueeze to avoid issues with torch.mv
+        w_sum = w_sum.unsqueeze(1) # shape N_hidden x 1
+        contractive_loss = torch.sum(torch.mm(dh**2, w_sum), 0)
+        return contractive_loss.mul_(lam)
+    ae=Autoencoder()
+    criterion=nn.MSELoss()
+    optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
 
+    for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
+        for batch in tqdm(range(no_batches), desc='Batches', leave=True):
+
+            optimizer.zero_grad()
+            ixs = torch.randperm(x.shape[0])[:args.batch_size]
+            dxdt_hat = model.time_derivative(x[ixs]).detach()
+            inp = x[ixs]
+
+            #-----------------Forward Pass----------------------
+            output=ae(inp)
+            loss=criterion(output,dxdt[ixs])+closs(model.state_dict().keys()[1], inp, output, ae.encoder(inp), 1e-4)
+            #-----------------Backward Pass---------------------
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+    result = False
+    while not result:
+        with np.errstate(invalid='raise'):
+            try:
+                r1, r2 = 4*np.random.random(2)-2
+                angle = 2*np.pi*np.random.random()-np.pi
+                q1, q2 = r1, r2
+                p1 = 0.5*np.sin(angle)
+                p2 = 0.5*np.cos(angle)
+                result = True 
+            except FloatingPointError:
+                continue
+    state = np.array([q1, q2, p1, p2])
+    orbit, settings = sys.get_orbit(state)
+    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
+    return encoding
 
 
 if __name__ == "__main__":
@@ -213,7 +256,7 @@ if __name__ == "__main__":
     # number of batches
     no_batches = int(x.shape[0]/args.batch_size)
 
-    encoding = train_DAE(x, dxdt, hnn_model)
+    encoding = train_CAE(x, dxdt, hnn_model)
 
     z = encoding[:,2]
     # convert to 2d matrices

@@ -74,19 +74,19 @@ class Autoencoder(nn.Module):
         super(Autoencoder,self).__init__()
         self.encoder=nn.Sequential(
                       nn.Linear(4,200),
-                      nn.Tanh(True),
+                      nn.Tanh(),
                       nn.Linear(200,200),
-                      nn.Tanh(True),
+                      nn.Tanh(),
                       nn.Linear(200,4)
                       )
         
         self.decoder=nn.Sequential(
                       nn.Linear(4,200),
-                      nn.Tanh(True),
+                      nn.Tanh(),
                       nn.Linear(200,200),
-                      nn.Tanh(True),
+                      nn.Tanh(),
                       nn.Linear(200, 4),
-                      nn.Sigmoid(),
+                      nn.Sigmoid()
                       )
         
  

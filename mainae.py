@@ -215,6 +215,109 @@ def train_CAE(x, dxdt, model):
     encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
     return encoding
 
+class VAE(nn.Module):
+    def __init__(self):
+        super(Autoencoder,self).__init__()
+        self.encoder=nn.Sequential(
+                      nn.Linear(4,200),
+                      nn.Tanh(),
+                      nn.Linear(200,200),
+                      nn.Tanh(),
+                      nn.Linear(200,4),
+                      nn.Tanh()
+                      )
+        
+        self.decoder=nn.Sequential(
+                      nn.Linear(4,200),
+                      nn.Tanh(),
+                      nn.Linear(200,200),
+                      nn.Tanh(),
+                      nn.Linear(200, 4),
+                      )
+    def reparametrize(mu, logvar):
+        std = logvar.div(2).exp()
+        eps = Variable(std.data.new(std.size()).normal_())
+        return mu + std*eps
+
+
+    def forward(self, x):
+        distributions = self._encode(x)
+        mu = distributions[:, :4]
+        logvar = distributions[:, 4:]
+        z = reparametrize(mu, logvar)
+        x_recon = self._decode(z)
+        return x_recon, mu, logvar
+
+
+def train_VAE(x, dxdt, model, beta = 4, beta1=0.9, beta2=0.999):
+
+    def reconstruction_loss(x, x_recon, distribution):
+        batch_size = x.size(0)
+        assert batch_size != 0
+
+        if distribution == 'bernoulli':
+            recon_loss = F.binary_cross_entropy_with_logits(x_recon, x, size_average=False).div(batch_size)
+        elif distribution == 'gaussian':
+            x_recon = F.sigmoid(x_recon)
+            recon_loss = F.mse_loss(x_recon, x, size_average=False).div(batch_size)
+        else:
+            recon_loss = None
+        return recon_loss
+
+    def kl_divergence(mu, logvar):
+        batch_size = mu.size(0)
+        assert batch_size != 0
+        if mu.data.ndimension() == 4:
+            mu = mu.view(mu.size(0), mu.size(1))
+        if logvar.data.ndimension() == 4:
+            logvar = logvar.view(logvar.size(0), logvar.size(1))
+
+        klds = -0.5*(1 + logvar - mu.pow(2) - logvar.exp())
+        total_kld = klds.sum(1).mean(0, True)
+        dimension_wise_kld = klds.mean(0)
+        mean_kld = klds.mean(1).mean(0, True)
+
+        return total_kld, dimension_wise_kld, mean_kld
+
+    vae=VAE()
+    criterion=nn.MSELoss()
+    optimizer=optim.Adam(vae.parameters(), lr=0.01, betas=(beta1, beta2))
+
+    for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
+        for batch in tqdm(range(no_batches), desc='Batches', leave=True):
+
+            optimizer.zero_grad()
+            ixs = torch.randperm(x.shape[0])[:args.batch_size]
+            dxdt_hat = model.time_derivative(x[ixs]).detach()
+
+            #-----------------Forward Pass----------------------
+            output, mu, logvar=ae(x[ixs])
+            recon_loss = reconstruction_loss(x[ixs], output, 'gaussian')
+            total_kld, dim_wise_kld, mean_kld = kl_divergence(mu, logvar)
+
+
+            loss= recon_loss + beta*total_kld
+            #-----------------Backward Pass---------------------
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+    result = False
+    while not result:
+        with np.errstate(invalid='raise'):
+            try:
+                r1, r2 = 4*np.random.random(2)-2
+                angle = 2*np.pi*np.random.random()-np.pi
+                q1, q2 = r1, r2
+                p1 = 0.5*np.sin(angle)
+                p2 = 0.5*np.cos(angle)
+                result = True 
+            except FloatingPointError:
+                continue
+    state = np.array([q1, q2, p1, p2])
+    orbit, settings = sys.get_orbit(state)
+    encoding = ae.encoder(torch.tensor(orbit.T, dtype=torch.float32)).detach().numpy()
+    return encoding
+
 
 if __name__ == "__main__":
 

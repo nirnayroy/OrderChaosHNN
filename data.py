@@ -330,8 +330,9 @@ class DynamicalSystem():
         '''Returns the trajectory dataset. Also constructs
            the dataset if no saved version is available.'''
 
-        path = '{}/{}-orbits-dataset_{}_EnsemblesPerEnergy_{}_OrbitLen_{}_Resolution_{}_energyPoints{}.pkl'.format(
-            save_dir, experiment_name, self.integrator, self.ensembles, self.tspan[1], self.time_points, self.energyPoints)
+        path = '/content/drive/MyDrive/imdb/SquareTorus_DSR_0.1-orbits-dataset_RK45_EnsemblesPerEnergy_10_OrbitLen_1000_Resolution_10000_energyPoints10.pkl'
+        #.format(
+         #   save_dir, experiment_name, self.integrator, self.ensembles, self.tspan[1], self.time_points, self.energyPoints)
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_5000_Resolution_50000_energyPoints20.pkl"
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_1000_Resolution_10000_energyPoints20.pkl"
 

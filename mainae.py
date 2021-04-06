@@ -35,7 +35,7 @@ def get_args():
                         type=int, help='batch size'),
     parser.add_argument('--input_noise', default=0.0,
                         type=float, help='noise strength added to the inputs')
-    parser.add_argument('--epochs', default=3,
+    parser.add_argument('--epochs', default=2,
                         type=int, help='No. of training epochs')
     parser.add_argument('--integrator_scheme', default='RK45',
                         type=str, help='name of the integration scheme [RK4, RK45, Symplectic]')
@@ -77,7 +77,8 @@ class Autoencoder(nn.Module):
                       nn.Tanh(),
                       nn.Linear(200,200),
                       nn.Tanh(),
-                      nn.Linear(200,4)
+                      nn.Linear(200,4),
+                      nn.Sigmoid()
                       )
         
         self.decoder=nn.Sequential(

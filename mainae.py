@@ -235,9 +235,10 @@ class VAE(nn.Module):
                       nn.Linear(200, 4),
                       )
     def reparametrize(self, mu, logvar):
-        std = logvar.div(2).exp()
-        eps = Variable(std.data.new(std.size()).normal_())
-        return mu + std*eps
+        var = logvar.exp()
+        std = var.sqrt()
+        eps = Variable(torch.FloatTensor(std.size()).normal_())
+        return eps.mul(std).add(mu)
 
     def forward(self, x):
         distributions = self.encoder(x)

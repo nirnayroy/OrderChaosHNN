@@ -234,10 +234,13 @@ class VAE(nn.Module):
                       nn.Tanh(),
                       nn.Linear(200, 4),
                       )
+        self.fc_mu = nn.Linear(hidden_dims[-1]*4, 4)
+        self.fc_var = nn.Linear(hidden_dims[-1]*4,4)
     def reparametrize(self, mu, logvar):
         var = logvar.exp()
         std = var.sqrt()
         eps = Variable(torch.FloatTensor(std.size()).normal_())
+        print(eps.shape, std.shape, mu.shape)
         return eps.mul(std).add(mu)
 
     def forward(self, x):

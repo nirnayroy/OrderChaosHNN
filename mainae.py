@@ -193,7 +193,7 @@ def train_CAE(x, dxdt, model):
 
             #-----------------Forward Pass----------------------
             output=ae(inp)
-            loss=criterion(output,dxdt[ixs])+closs(model.state_dict()['baseline_model.layers.1.weight'], inp, output, ae.encoder(inp), 1e-4)
+            loss=criterion(output,dxdt[ixs])+closs(ae.state_dict()['encoder.2.weight'], inp, output, ae.encoder(inp), 1e-4)
             #-----------------Backward Pass---------------------
             optimizer.zero_grad()
             loss.backward()

@@ -181,7 +181,7 @@ def train_CAE(x, dxdt, model):
     ae=Autoencoder()
     criterion=nn.MSELoss()
     optimizer=optim.SGD(ae.parameters(),lr=0.01,weight_decay=1e-5)
-
+    print(model.state_dict().keys())
     for epoch in tqdm(range(args.epochs), desc='Epochs', leave=True):
         for batch in tqdm(range(no_batches), desc='Batches', leave=True):
 

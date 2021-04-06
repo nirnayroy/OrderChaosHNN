@@ -1,5 +1,6 @@
 import torch
 from torch import nn, optim
+from torch.autograd import Variable
 import numpy as np
 from hnn import HNN
 from  baseline_nn import BLNN
@@ -11,7 +12,6 @@ from tqdm import tqdm
 import os
 import sys
 from mpl_toolkits import mplot3d
-
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_args():

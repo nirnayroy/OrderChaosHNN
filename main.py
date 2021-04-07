@@ -31,7 +31,7 @@ def get_args():
                         type=float, help='noise strength added to the inputs')
     parser.add_argument('--epochs', default=2,
                         type=int, help='No. of training epochs')
-    parser.add_argument('--integrator_scheme', default='RK45',
+    parser.add_argument('--integrator_scheme', default='RK4',
                         type=str, help='name of the integration scheme [RK4, RK45, Symplectic]')
     parser.add_argument('--activation_fn', default='Tanh', type=str,
                         help='which activation function to use [Tanh, ReLU]')

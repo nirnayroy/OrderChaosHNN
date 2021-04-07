@@ -61,12 +61,12 @@ def load_model(args, baseline=False):
     if baseline:
         output_dim = args.input_dim
         model = BLNN(args.input_dim, args.hidden_dim,output_dim, args.activation_fn)
-        path = "/content/OrderChaosHNN/TrainedNetworks/Square_DSR_0.1_nlayers_2-orbits-baseline_integrator_RK45_epochs_2_BatchSize_512.tar"
+        path = "/content/OrderChaosHNN/TrainedNetworks/SquareTorus_DSR_0.1_nlayers_2-orbits-baseline_integrator_RK45_epochs_2_BatchSize_512.tar"
     else:
         output_dim = 1
         nn_model = BLNN(args.input_dim, args.hidden_dim,output_dim, args.activation_fn)
         model = HNN(args.input_dim,baseline_model=nn_model)
-        path = "/content/OrderChaosHNN/TrainedNetworks/Square_DSR_0.1_nlayers_2-orbits-hnn_integrator_RK45_epochs_2_BatchSize_512.tar"
+        path = "/content/OrderChaosHNN/TrainedNetworks/SquareTorus_DSR_0.1_nlayers_2-orbits-hnn_integrator_RK45_epochs_2_BatchSize_512.tar"
     
     model.load_state_dict(torch.load(path),strict=False)
     return model
@@ -363,7 +363,7 @@ if __name__ == "__main__":
     # number of batches
     no_batches = int(x.shape[0]/args.batch_size)
 
-    encoding = train_VAE(x, dxdt, hnn_model)
+    encoding = train_AE(x, dxdt, hnn_model)
 
     z = encoding[:,2]
     # convert to 2d matrices

@@ -247,7 +247,7 @@ class DynamicalSystem():
             with np.errstate(invalid='raise'):
                 try:
                     r1, r2 = 4*np.random.random(2)-2
-                    if -1<r1<1 and -1<r2<1:
+                    if -1.2<r1<1.2 and -1.2<r2<1.2:
                         continue
                     else:
                         angle = 2*np.pi*np.random.random()-np.pi

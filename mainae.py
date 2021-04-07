@@ -363,7 +363,7 @@ if __name__ == "__main__":
     # number of batches
     no_batches = int(x.shape[0]/args.batch_size)
 
-    encoding = train_AE(x, dxdt, hnn_model)
+    encoding = train_CAE(x, dxdt, hnn_model)
 
     z = encoding[:,2]
     # convert to 2d matrices

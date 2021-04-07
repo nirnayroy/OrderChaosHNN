@@ -20,7 +20,7 @@ def get_args():
                         default='''(p1**2+p2**2)/(2)-((
         (1/(1+(exp(-(q1+2)/0.1))))-(1/(1+(exp(-(q1-2)/0.1)))))*(
         (1/(1+(exp(-(q2+2)/0.1))))-(1/(1+(exp(-(q2-2)/0.1))))))
-        -(1/(1+(exp(-((((q1**+2)+(q2**2))-(1)**2))/0.1))))+1''',
+        -(1/(1+(exp(-((((q1**+2)+(q2**2))-1))/0.1))))+1''',
                         type=str, help='Hamiltonian of the system')
 
     parser.add_argument('--input_dim', default=4,

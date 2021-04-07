@@ -256,7 +256,7 @@ class DynamicalSystem():
                         p2 = np.sqrt(2*energy-((p1**2)-((
                                         (1/(1+(np.exp(-(q1+2)/0.1))))-(1/(1+(np.exp(-(q1-2)/0.1)))))*(
                                         (1/(1+(np.exp(-(q2+2)/0.1))))-(1/(1+(np.exp(-(q2-2)/0.1))))))
-                                        -(1/(1+(np.exp(-(((q1**2)+(q2**2))-(1)**2)/0.1))))+1))
+                                        -(1/(1+(np.exp(-(((q1**2)+(q2**2))-1)/0.2))))+1))
                         result = True
                 except FloatingPointError:
                     continue

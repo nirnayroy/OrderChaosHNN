@@ -289,6 +289,7 @@ class DynamicalSystem():
             while count < N:
                 state = self.random_config(energy)
                 orbit, settings = self.get_orbit(state)
+                print(count)
                 batch = orbit.transpose(1, 0)
 
                 for state in batch:

@@ -200,13 +200,14 @@ class DynamicalSystem():
         # print(self.update_fn)
         t_eval = np.linspace(
             self.tspan[0], self.tspan[1], self.time_points)
-
+        '''
         path = integrate.solve_ivp(fun=self.update_fn,
                                    t_span=self.tspan,
                                    y0=state.flatten(),
                                    t_eval=t_eval, rtol=1e-3)
         orbit = path['y'].reshape(self.sys_dim, self.time_points)
         orbit_settings['t_eval'] = t_eval
+        '''
 
         # fixed step size RK4
         if self.integrator == "RK4":

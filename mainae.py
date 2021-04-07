@@ -20,9 +20,7 @@ def get_args():
                         default='''(p1**2+p2**2)/(2)-((
         (1/(1+(exp(-(q1+2)/0.1))))-(1/(1+(exp(-(q1-2)/0.1)))))*(
         (1/(1+(exp(-(q2+2)/0.1))))-(1/(1+(exp(-(q2-2)/0.1))))))
-        +((
-        (1/(1+(exp(-(q1+0.5)/0.1))))-(1/(1+(exp(-(q1-0.5)/0.1)))))*(
-        (1/(1+(exp(-(q2+0.5)/0.1))))-(1/(1+(exp(-(q2-0.5)/0.1))))))+1''',
+        -(1/(1+(np.exp(-((((q1**+2)+(q2**2))-(1)**2))/0.01))))+1''',
                         type=str, help='Hamiltonian of the system')
 
     parser.add_argument('--input_dim', default=4,
@@ -43,7 +41,7 @@ def get_args():
                         type=str, help='name of the integration scheme [RK4, RK45, Symplectic]')
     parser.add_argument('--activation_fn', default='Tanh', type=str,
                         help='which activation function to use [Tanh, ReLU]')
-    parser.add_argument('--name', default='SquareTorus',
+    parser.add_argument('--name', default='Sinai',
                         type=str, help='Name of the system')
     parser.add_argument('--model', default='baseline',
                         type=str, help='baseline or hamiltonian')

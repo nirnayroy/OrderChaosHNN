@@ -256,8 +256,7 @@ class DynamicalSystem():
                         p2 = np.sqrt(2*energy-((p1**2)-((
                                         (1/(1+(np.exp(-(q1+2)/0.1))))-(1/(1+(np.exp(-(q1-2)/0.1)))))*(
                                         (1/(1+(np.exp(-(q2+2)/0.1))))-(1/(1+(np.exp(-(q2-2)/0.1))))))
-                                        +(((1/(1+(np.exp(-(q1+0.5)/0.1))))-(1/(1+(np.exp(-(q1-0.5)/0.1)))))*(
-                                        (1/(1+(np.exp(-(q2+0.5)/0.1))))-(1/(1+(np.exp(-(q2-0.5)/0.1))))))+1))
+                                        -(1/(1+(np.exp(-((((q1**+2)+(q2**2))-(1)**2))/0.01))))+1))
                         result = True
                 except FloatingPointError:
                     continue
@@ -273,7 +272,7 @@ class DynamicalSystem():
     def sample_orbits(self):
         orbit_settings = {}
         if self.verbose:
-            print("Making a data-set for Henon-Heiles system ...")
+            print("Making a data-set for Siani system ...")
 
         # Energy range for training [0.02, 0.15]
         energies = np.linspace(0.35, 0.85, self.energyPoints)
@@ -330,7 +329,7 @@ class DynamicalSystem():
         '''Returns the trajectory dataset. Also constructs
            the dataset if no saved version is available.'''
 
-        path = '/content/drive/MyDrive/imdb/SquareTorus_DSR_0.1-orbits-dataset_RK45_EnsemblesPerEnergy_10_OrbitLen_1000_Resolution_10000_energyPoints10.pkl'
+        path = '/content/drive/MyDrive/imdb/Sinai_DSR_0.1-orbits-dataset_RK45_EnsemblesPerEnergy_10_OrbitLen_1000_Resolution_10000_energyPoints10.pkl'
         #.format(
          #   save_dir, experiment_name, self.integrator, self.ensembles, self.tspan[1], self.time_points, self.energyPoints)
         #path = "../Henon-Heiles-orbits-dataset_RK45_EnsemblesPerEnergy_20_OrbitLen_5000_Resolution_50000_energyPoints20.pkl"
